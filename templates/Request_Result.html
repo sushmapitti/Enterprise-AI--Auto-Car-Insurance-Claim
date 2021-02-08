@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/4.0.2/bootstrap-material-design.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/request.css') }}">
+	<title> Request_Result</title>
+</head>
+<body>
+<form action="" method="POST" enctype="multipart/form-data">
+<div id=page>
+	<div id=box>
+		<div id=box-left>
+            <img src="{{url_for('static',filename=name)}}" width="450px" height="350px"/>
+        </div>	
+         <div id=box-right>
+            {% if result|length>1%}
+             <h2 style="color:whitesmoke;font-family: serif;font-size:25px;">{{intensity}} at</h2>
+                 {% for key,value in result.items()%}
+                 <p id="key" style="text-align: left; color:rgb(136, 173, 223);font-size: 15px;"><b>{{key.capitalize()}}</b><span style="float:right;">{{value}}</span></p>
+                 {% endfor %}
+            {% else %}
+             <h2 id="Not_Car" style="color: rgb(244, 244, 245);">Damages aren't Found</h2>
+            {% endif %}  
+		</div>
+    </div>
+</div>
+    {% if Status|string()=="Rejected" %}
+    <p id="Reject">{{Status}}</p>
+    {% else %}
+    <p id="Accept">{{Status}}</p>
+    {% endif %}
+</form>
+<div id="body">    
+    <div id="chat-circle" class="btn btn-raised">
+            <div id="chat-overlay"></div>
+                <i class="material-icons">speaker_notes</i>
+        </div>
+      
+      <div class="chat-box">
+        <div class="chat-box-header">
+          Query Solver
+          <span class="chat-box-toggle"><i class="material-icons">close</i></span>
+        </div>
+        <div class="chat-box-body">
+          <div class="chat-box-overlay">   
+          </div>
+          <div class="chat-logs">
+           <p class="botText"><span>Hello User</span></p>
+           <p class="botText"><span>How can I help You?</span></p>
+          </div>
+        </div>
+        <div class="chat-input" id="userInput">      
+          <form>
+            <input type="text" id="chat-input" placeholder="Send a message..."/>
+          <button type="submit" class="chat-submit" id="chat-submit"><i class="material-icons">send</i></button>
+          </form>      
+        </div>
+      </div>
+      <script>
+        function getBotResponse(){
+        var rawText = $("#chat-input").val();
+        var userHtml = '<p class = "userText"><span>' + rawText + '</span></p>';
+        $("#chat-input").val("");
+        $(".chat-logs").append(userHtml);
+        document.getElementById('userInput').scrollIntoView({block:'start',behaviour:'smooth'});
+        $.get("/get", {msg:rawText }).done(function(data) {
+        var botHtml = '<p class ="botText"><span>' + data + '</span></p>';
+        $(".chat-logs").append(botHtml);
+        document.getElementById('userInput').scrollIntoView({block : 'start',behaviour:'smooth'});
+        });
+        }
+        $("#chat-input").keypress(function(e) {
+        if(e.which == 13) {
+        getBotResponse();
+        }
+        });
+        $(".chat-submit").click(function(e) {
+            e.preventDefault();
+        getBotResponse();
+        })
+        $("#chat-circle").click(function() {    
+    $("#chat-circle").toggle('scale');
+    $(".chat-box").toggle('scale');
+  })
+  
+  $(".chat-box-toggle").click(function() {
+    $("#chat-circle").toggle('scale');
+    $(".chat-box").toggle('scale');
+  })
+        </script>
+        
+</body>
+</html>

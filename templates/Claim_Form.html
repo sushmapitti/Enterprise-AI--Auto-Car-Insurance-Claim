@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/4.0.2/bootstrap-material-design.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://bootswatch.com/4/simplex/bootstrap.min.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ClaimDetails.css') }}">
+    <title>Claim</title>
+</head>
+<body>
+    <form action="http://localhost:5000/Request_Result" method="POST" enctype="multipart/form-data">
+    <div class="container">
+      <div class="title_box" style="width:100%;">
+        <h2 class="d-block" style="font-size: 2rem; font-weight: bold;">Claim Details Required</h2>
+    </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                        <div class="row">
+                                            <div class="col-sm-3 col-md-2 col-5">
+                                                <label style="font-weight:bold;">Policy Id</label>
+                                            </div>
+                                            <div class="col-md-8 col-6">
+                                               <input type="text" id="PId" name="policy_id" maxlength="7" value={{pid}} required>
+                                            </div>
+                                        </div>
+                                        <hr />
+
+                                        <div class="row">
+                                            <div class="col-sm-3 col-md-2 col-5">
+                                                <label style="font-weight:bold;">Date of Accident</label>
+                                            </div>
+                                            <div class="col-md-8 col-6">
+                                               <input type="date" style="border-radius: 10px;width:350px;height:35px;border-color: whitesmoke;" required>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        <div class="row">
+                                            <div class="col-sm-3 col-md-2 col-5">
+                                                <label style="font-weight:bold;">Place of Accident</label>
+                                            </div>
+                                            <div class="col-md-8 col-6">
+                                                <input type="text">
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        <div class="row">
+                                            <div class="col-sm-3 col-md-2 col-5">
+                                                <label style="font-weight:bold;">Upload Damaged-side vehicle Image</label>
+                                            </div>
+                                            <div class="col-md-8 col-6">
+                                               <input type="file" name="Image" accept="Image/*" required>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        <div class="row">
+                                            <div class="col-sm-3 col-md-2 col-5">
+                                                <label style="font-weight:bold;">Description of Accident</label>
+                                            </div>
+                                            <div class="col-md-8 col-6">
+                                                <textarea rows="4" columns="70" id="textview"></textarea>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                </div>
+                     
+                            </div>
+                    </div>  
+
+                </div>
+            </div>
+        </div>
+        <input id=claim type="submit" value="click here to claim" >
+    </div>
+    </form>
+    <div>    
+    <div id="chat-circle" class="btn btn-raised">
+            <div id="chat-overlay"></div>
+                <i class="material-icons">speaker_notes</i>
+        </div>
+      
+      <div class="chat-box">
+        <div class="chat-box-header">
+          Query Solver
+          <span class="chat-box-toggle"><i class="material-icons">close</i></span>
+        </div>
+        <div class="chat-box-body">
+          <div class="chat-box-overlay">   
+          </div>
+          <div class="chat-logs">
+           <p class="botText"><span>Hello User</span></p>
+           <p class="botText"><span>How can I help You?</span></p>
+          </div>
+        </div>
+        <div class="chat-input" id="userInput">      
+          <form>
+            <input type="text" id="chat-input" placeholder="Send a message..."/>
+          <button type="submit" class="chat-submit" id="chat-submit"><i class="material-icons">send</i></button>
+          </form>      
+        </div>
+      </div>
+      <script>
+        function getBotResponse(){
+        var rawText = $("#chat-input").val();
+        var userHtml = '<p class = "userText"><span>' + rawText + '</span></p>';
+        $("#chat-input").val("");
+        $(".chat-logs").append(userHtml);
+        document.getElementById('userInput').scrollIntoView({block:'start',behaviour:'smooth'});
+        $.get("/get", {msg:rawText }).done(function(data) {
+        var botHtml = '<p class ="botText"><span>' + data + '</span></p>';
+        $(".chat-logs").append(botHtml);
+        document.getElementById('userInput').scrollIntoView({block : 'start',behaviour:'smooth'});
+        });
+        }
+        $("#chat-input").keypress(function(e) {
+        if(e.which == 13) {
+        getBotResponse();
+        }
+        });
+        $(".chat-submit").click(function(e) {
+            e.preventDefault();
+        getBotResponse();
+        })
+        $("#chat-circle").click(function() {    
+    $("#chat-circle").toggle('scale');
+    $(".chat-box").toggle('scale');
+  })
+  
+  $(".chat-box-toggle").click(function() {
+    $("#chat-circle").toggle('scale');
+    $(".chat-box").toggle('scale');
+  })
+        </script>
+        
+    </div> 
+</body>
+</html>
