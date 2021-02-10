@@ -1,35 +1,22 @@
 import pymysql
 import random
 from flask import Flask,render_template,request,send_from_directory
-from werkzeug.utils import secure_filename
 import os
 import time
-import json
-from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
+from bottraining import bottrain
+from sentimentaltraining import trainin
 import re
 import yagmail
 import smtplib
 import imaplib
 import email
-from textblob import TextBlob
 from textblob.classifiers import NaiveBayesClassifier
-import numpy as np
 from PIL import Image,ImageDraw
 from ibm_watson import VisualRecognitionV4
 from watson_developer_cloud import VisualRecognitionV3
 from ibm_watson.visual_recognition_v4 import AnalyzeEnums, FileWithMetadata
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 app=Flask(__name__,template_folder='templates')
-english_bot = ChatBot("Chatterbot",storage_adapter="chatterbot.storage.SQLStorageAdapter")
-trainer = ChatterBotCorpusTrainer(english_bot)
-#training chatbot 
-trainer.train(r"C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\data\claimProcedure.yml")
-trainer.train(r"C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\data\modify.yml")
-trainer.train(r"C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\data\Transfer.yml")
-trainer.train(r"C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\data\greet.yml")
-trainer.train(r"C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\data\FAQ.yml")
-trainer.train(r"C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\data\Handoff.yml")
 path=r'C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\static\\'
 img_path=r'C:\Users\sushma\AppData\Local\Programs\Python\Python38\Scripts\Inframind\static\Req.jpeg'
 def Estimation(k):
@@ -50,9 +37,6 @@ def database_connection(PolicyId,status,image):
    Am=cursor.fetchall()
    con.commit()
    if status=="Accepted" and (Am):
-       image_path=path+image
-      # up_image="Insert into claimdata(Damaged_Image) value(1,LOAD_FILE("+image_path+")) where PolicyId="+PolicyId+";"
-       #cursor.execute(up_image)
        up_status="update claimdata set Status_Claim=1 where PolicyId="+str(PolicyId)+";" #updating claim status
        cursor.execute(up_status)
    con.commit()
@@ -62,25 +46,6 @@ def database_connection(PolicyId,status,image):
    else:
        s=Am[0][0] # Policy Amount 
        return (int(s[0]))
-pos_prob=[]
-senti=[]
-val=[]
-train=[('I love this policy','pos'),('I didn"t get the correct answer for my question','neg'),('okay','pos'),('Need help','pos'),('Ít"s not the way to treat','neg'),('view my details',"pos"),("Best application","pos"),("I don't like it",'neg'),('your answering is bad','neg'),('best','pos'),('Not upto mark','neg'),('Could be more better','neg'),("It's good",'pos'),('It given wrong results','neg'),('Results were not acurate','neg'),('helpful','pos'),('not helpful','neg'),(' very advantageous','pos'),("It's disgusting",'neg'),("Hi",'pos'),('hello','pos'),('How to claim','pos'),('what is IDV','pos'),('so long to reply','neg'),('not worthy','neg'),('worthy and helpful','pos'),('update my details','pos'),('Time taking','neg'),("worse results",'neg'),('not good','neg'),('Modify policy','pos'),('This bot is not good','neg'),("hate",'neg'),( " my policy id",'pos'),("we regret to inform",'neg'),("easy and simple",'pos'),("hard and complex",'pos'),("My car is damaged",'neg'),("better results",'pos'),('sorry for inconvenience','neg'),("time taking",'neg'),("time consuming",'neg'),("bad",'neg'),("worst results","neg"),("wrong output","neg")]
-#sentimental analysis of conversation training data
-c1=NaiveBayesClassifier(train)#training 
-def train(Text):
-    global pos_prob,c1,senti,val
-    ans=c1.prob_classify(Text)
-    pos_prob.append(ans.prob('pos'))
-    senti.append(c1.classify(Text))
-    val.append(len(senti))
-    if len(senti)<2:
-        return False
-    else:
-        if senti[-1]=="neg" and senti[-2]=='neg':#checking 2 consecutive negative impulse from customer then human handoff
-            return True
-        else:
-             return False
 def database(PolicyID):  
      con=pymysql.connect(host="localhost",user="root",password="",database="insurance")
      cursor=con.cursor()
@@ -98,7 +63,7 @@ def receive():
    result, data = mail.search(None, "ALL")#filtering emails
    ids = data[0] # data is a list.
    id_list = ids.split() # ids is a space separated string
-   latest_email_id =id_list[-1] # get the latest
+   latest_email_id =id_list[-1] # get the latest mailid
    result, data = mail.fetch(latest_email_id, "(RFC822)") 
    for response_part in data:
        if isinstance(response_part,tuple):
@@ -122,7 +87,7 @@ def get_bot_response():
      userText = request.args.get("msg")#User Query in chatbot
      userText=userText.lower()
      global i,conv,Data
-     res=train(userText)
+     res=trainin(userText)
      Data=database(polid)
      #Database checking from the userInput 
      handoff=["sure","yes,connect it","okay","ok","yup","ok,make it fast","done"]
@@ -152,7 +117,7 @@ def get_bot_response():
           i=1
           conv.update({userText:s})# convo update-storage for next sentiment analysis
           return s
-     resp=str(english_bot.get_response(userText))
+     resp=str(bottrain(userText))
      if len(resp)>30 and len(resp)<60:
          r=len(resp[:30].rsplit(' ', 1)[0])
          response=resp[:r]+"</span></p><p class='botText'><span>"+resp[r:] #response multiline making
