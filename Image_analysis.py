@@ -4,7 +4,7 @@ from flask import Flask,render_template,request,send_from_directory
 import os
 import time
 from bottraining import bottrain
-from sentimentaltraining import trainin
+from sentiment import trainin
 import re
 import yagmail
 import smtplib
@@ -202,14 +202,14 @@ def Request_Result():
         if policy_am==0:
            return "<h1>Claim Completed</h1>"
         Result=Estimation(analy.keys())
-        total=(Result["Scaled Total"]+policy_am)*0.5
+        total=(Result["Scaled Total"]+policy_am)*0.5 #approximate cost estimation with considering policy amount and car damages
         if severity_Class=="Severe_Damage":
-            total=total*4
+            total=total*4 #Damages cost based on severity of damage
         elif(severity_Class=="Moderate_Damage"):
             total=total*3
         elif(severity_Class=="Minor_Damage"):
             total=total*2
         Result["Scaled Total"]=total #estimating scaled total
-        return render_template("Request_Result.html",name=new_name,result=Result,Status=status,intensity=severity_Class)#
+        return render_template("Request_Result.html",name=new_name,result=Result,Status=status,intensity=severity_Class)
 app.run(host='localhost', port=5000) 
 
